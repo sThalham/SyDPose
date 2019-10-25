@@ -6,8 +6,8 @@ by Stefan Thalhammer, Timothy Patten, and Markus Vincze.
 ## Installation
 
 1) Clone this repository.
-2) No installation necessary
-3) dependencies have to installed manually
+2) No installation necessary.
+3) Dependencies have to be installed manually.
 
 # Training
 RetNetPose/bin/train.py "dataset" /path/to/dataset-train
