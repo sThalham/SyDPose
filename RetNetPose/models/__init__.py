@@ -15,17 +15,12 @@ class Backbone(object):
             'UpsampleLike'     : layers.UpsampleLike,
             'PriorProbability' : initializers.PriorProbability,
             'RegressBoxes'     : layers.RegressBoxes,
-            'RegressPoses'     : layers.RegressRotation,
             'FilterDetections' : layers.FilterDetections,
             'Anchors'          : layers.Anchors,
             'ClipBoxes'        : layers.ClipBoxes,
             '_smooth_l1'       : losses.smooth_l1(),
             '_focal'           : losses.focal(),
             '_cross'           : losses.cross(),
-            '_wMSE'            : losses.weighted_mse(),
-            '_wl1'            : losses.weighted_l1(),
-            '_msle'           : losses.weighted_msle(),
-            '_smooth_l1_xy'    : losses.smooth_l1_xy(),
             'l2_norm'          : retinanet.l2_norm(),
             'batch_norm'       : retinanet.batch_norm(),
             '_orth_l1'        : losses.orthogonal_l1(),
@@ -90,7 +85,27 @@ def load_model(filepath, backbone_name='resnet50'):
         ValueError: In case of an invalid savefile.
     """
     import keras.models
-    return keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
+    from .. import layers
+    from .. import losses
+    from .. import initializers
+    from . import retinanet
+
+    custom_objects = {
+        'UpsampleLike': layers.UpsampleLike,
+        'PriorProbability': initializers.PriorProbability,
+        'RegressBoxes': layers.RegressBoxes,
+        'FilterDetections': layers.FilterDetections,
+        'Anchors': layers.Anchors,
+        'ClipBoxes': layers.ClipBoxes,
+        '_smooth_l1': losses.smooth_l1(),
+        '_focal': losses.focal(),
+        '_cross': losses.cross(),
+        'l2_norm': retinanet.l2_norm(),
+        'batch_norm': retinanet.batch_norm(),
+        '_orth_l1': losses.orthogonal_l1(),
+    }
+    #return keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
+    return keras.models.load_model(filepath, custom_objects=custom_objects)
 
 
 def convert_model(model, nms=True, class_specific_filter=True, anchor_params=None):
@@ -116,9 +131,8 @@ def convert_model(model, nms=True, class_specific_filter=True, anchor_params=Non
 def assert_training_model(model):
     """ Assert that the model is a training model.
     """
-    #assert(all(output in model.output_names for output in ['bbox', 'xy', 'depth', 'roll', 'pitch', 'yaw', 'cls'])), "Input is not a training model (no 'regression' and 'classification' outputs were found, outputs are: {}).".format(model.output_names)
+    #assert (all(output in model.output_names for output in ['points', 'cls', 'feat'])), "Input is not a training model (no 'regression' and 'classification' outputs were found, outputs are: {}).".format(model.output_names)
     assert (all(output in model.output_names for output in ['bbox', '3Dbox', 'cls'])), "Input is not a training model (no 'regression' and 'classification' outputs were found, outputs are: {}).".format(model.output_names)
-    #assert (all(output in model.output_names for output in ['bbox', 'xy', 'dep', 'rot', 'cls'])), "Input is not a training model (no 'regression' and 'classification' outputs were found, outputs are: {}).".format(model.output_names)
 
 
 def check_training_model(model):

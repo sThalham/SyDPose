@@ -29,7 +29,7 @@ import cv2
 import open3d
 from ..utils import ply_loader
 from .pose_error import reproj, add, adi, re, te, vsd
-import time
+import yaml
 
 import progressbar
 assert(callable(progressbar.progressbar)), "Using wrong progressbar module, install 'progressbar2' instead."
@@ -40,133 +40,6 @@ fxkin = 572.41140
 fykin = 573.57043
 cxkin = 325.26110
 cykin = 242.04899
-
-
-threeD_boxes = np.ndarray((15, 8, 3), dtype=np.float32)
-threeD_boxes[0, :, :] = np.array([[0.038, 0.039, 0.046],  # ape [76, 78, 92]
-                                     [0.038, 0.039, -0.046],
-                                     [0.038, -0.039, -0.046],
-                                     [0.038, -0.039, 0.046],
-                                     [-0.038, 0.039, 0.046],
-                                     [-0.038, 0.039, -0.046],
-                                     [-0.038, -0.039, -0.046],
-                                     [-0.038, -0.039, 0.046]])
-threeD_boxes[1, :, :] = np.array([[0.108, 0.061, 0.1095],  # benchvise [216, 122, 219]
-                                     [0.108, 0.061, -0.1095],
-                                     [0.108, -0.061, -0.1095],
-                                     [0.108, -0.061, 0.1095],
-                                     [-0.108, 0.061, 0.1095],
-                                     [-0.108, 0.061, -0.1095],
-                                     [-0.108, -0.061, -0.1095],
-                                     [-0.108, -0.061, 0.1095]])
-threeD_boxes[2, :, :] = np.array([[0.083, 0.0825, 0.037],  # bowl [166, 165, 74]
-                                     [0.083, 0.0825, -0.037],
-                                     [0.083, -0.0825, -0.037],
-                                     [0.083, -0.0825, 0.037],
-                                     [-0.083, 0.0825, 0.037],
-                                     [-0.083, 0.0825, -0.037],
-                                     [-0.083, -0.0825, -0.037],
-                                     [-0.083, -0.0825, 0.037]])
-threeD_boxes[3, :, :] = np.array([[0.0685, 0.0715, 0.05],  # camera [137, 143, 100]
-                                     [0.0685, 0.0715, -0.05],
-                                     [0.0685, -0.0715, -0.05],
-                                     [0.0685, -0.0715, 0.05],
-                                     [-0.0685, 0.0715, 0.05],
-                                     [-0.0685, 0.0715, -0.05],
-                                     [-0.0685, -0.0715, -0.05],
-                                     [-0.0685, -0.0715, 0.05]])
-threeD_boxes[4, :, :] = np.array([[0.0505, 0.091, 0.097],  # can [101, 182, 194]
-                                     [0.0505, 0.091, -0.097],
-                                     [0.0505, -0.091, -0.097],
-                                     [0.0505, -0.091, 0.097],
-                                     [-0.0505, 0.091, 0.097],
-                                     [-0.0505, 0.091, -0.097],
-                                     [-0.0505, -0.091, -0.097],
-                                     [-0.0505, -0.091, 0.097]])
-threeD_boxes[5, :, :] = np.array([[0.0335, 0.064, 0.0585],  # cat [67, 128, 117]
-                                     [0.0335, 0.064, -0.0585],
-                                     [0.0335, -0.064, -0.0585],
-                                     [0.0335, -0.064, 0.0585],
-                                     [-0.0335, 0.064, 0.0585],
-                                     [-0.0335, 0.064, -0.0585],
-                                     [-0.0335, -0.064, -0.0585],
-                                     [-0.0335, -0.064, 0.0585]])
-threeD_boxes[6, :, :] = np.array([[0.059, 0.046, 0.0475],  # mug [118, 92, 95]
-                                     [0.059, 0.046, -0.0475],
-                                     [0.059, -0.046, -0.0475],
-                                     [0.059, -0.046, 0.0475],
-                                     [-0.059, 0.046, 0.0475],
-                                     [-0.059, 0.046, -0.0475],
-                                     [-0.059, -0.046, -0.0475],
-                                     [-0.059, -0.046, 0.0475]])
-threeD_boxes[7, :, :] = np.array([[0.115, 0.038, 0.104],  # drill [230, 76, 208]
-                                     [0.115, 0.038, -0.104],
-                                     [0.115, -0.038, -0.104],
-                                     [0.115, -0.038, 0.104],
-                                     [-0.115, 0.038, 0.104],
-                                     [-0.115, 0.038, -0.104],
-                                     [-0.115, -0.038, -0.104],
-                                     [-0.115, -0.038, 0.104]])
-threeD_boxes[8, :, :] = np.array([[0.052, 0.0385, 0.043],  # duck [104, 77, 86]
-                                     [0.052, 0.0385, -0.043],
-                                     [0.052, -0.0385, -0.043],
-                                     [0.052, -0.0385, 0.043],
-                                     [-0.052, 0.0385, 0.043],
-                                     [-0.052, 0.0385, -0.043],
-                                     [-0.052, -0.0385, -0.043],
-                                     [-0.052, -0.0385, 0.043]])
-threeD_boxes[9, :, :] = np.array([[0.075, 0.0535, 0.0345],  # eggbox [150, 107, 69]
-                                     [0.075, 0.0535, -0.0345],
-                                     [0.075, -0.0535, -0.0345],
-                                     [0.075, -0.0535, 0.0345],
-                                     [-0.075, 0.0535, 0.0345],
-                                     [-0.075, 0.0535, -0.0345],
-                                     [-0.075, -0.0535, -0.0345],
-                                     [-0.075, -0.0535, 0.0345]])
-threeD_boxes[10, :, :] = np.array([[0.0185, 0.039, 0.0865],  # glue [37, 78, 173]
-                                     [0.0185, 0.039, -0.0865],
-                                     [0.0185, -0.039, -0.0865],
-                                     [0.0185, -0.039, 0.0865],
-                                     [-0.0185, 0.039, 0.0865],
-                                     [-0.0185, 0.039, -0.0865],
-                                     [-0.0185, -0.039, -0.0865],
-                                     [-0.0185, -0.039, 0.0865]])
-threeD_boxes[11, :, :] = np.array([[0.0505, 0.054, 0.04505],  # holepuncher [101, 108, 91]
-                                     [0.0505, 0.054, -0.04505],
-                                     [0.0505, -0.054, -0.04505],
-                                     [0.0505, -0.054, 0.04505],
-                                     [-0.0505, 0.054, 0.04505],
-                                     [-0.0505, 0.054, -0.04505],
-                                     [-0.0505, -0.054, -0.04505],
-                                     [-0.0505, -0.054, 0.04505]])
-threeD_boxes[12, :, :] = np.array([[0.115, 0.038, 0.104],  # drill [230, 76, 208]
-                                     [0.115, 0.038, -0.104],
-                                     [0.115, -0.038, -0.104],
-                                     [0.115, -0.038, 0.104],
-                                     [-0.115, 0.038, 0.104],
-                                     [-0.115, 0.038, -0.104],
-                                     [-0.115, -0.038, -0.104],
-                                     [-0.115, -0.038, 0.104]])
-threeD_boxes[13, :, :] = np.array([[0.129, 0.059, 0.0705],  # iron [258, 118, 141]
-                                     [0.129, 0.059, -0.0705],
-                                     [0.129, -0.059, -0.0705],
-                                     [0.129, -0.059, 0.0705],
-                                     [-0.129, 0.059, 0.0705],
-                                     [-0.129, 0.059, -0.0705],
-                                     [-0.129, -0.059, -0.0705],
-                                     [-0.129, -0.059, 0.0705]])
-threeD_boxes[14, :, :] = np.array([[0.047, 0.0735, 0.0925],  # phone [94, 147, 185]
-                                     [0.047, 0.0735, -0.0925],
-                                     [0.047, -0.0735, -0.0925],
-                                     [0.047, -0.0735, 0.0925],
-                                     [-0.047, 0.0735, 0.0925],
-                                     [-0.047, 0.0735, -0.0925],
-                                     [-0.047, -0.0735, -0.0925],
-                                     [-0.047, -0.0735, 0.0925]])
-
-#model_radii = np.array([0.041, 0.0928, 0.0675, 0.0633, 0.0795, 0.052, 0.0508, 0.0853, 0.0445, 0.0543, 0.048, 0.05, 0.0862, 0.0888, 0.071])
-#model_radii = np.array([0.0515, 0.143454, 0.0675, 0.0865, 0.101, 0.0775, 0.0508, 0.131, 0.545, 0.88182, 0.088, 0.081, 0.1515765, 0.1425775, 0.1065])
-model_dia = np.array([0.10209865663, 0.24750624233, 0.16735486092, 0.17249224865, 0.20140358597, 0.15454551808, 0.12426430816, 0.26147178102, 0.10899920102, 0.16462758848, 0.17588933422, 0.14554287471, 0.27807811733, 0.28260129399, 0.21235825148])
 
 
 def get_evaluation(pcd_temp_, pcd_scene_, inlier_thres, tf, final_th=0, n_iter=5):#queue
@@ -220,7 +93,7 @@ def toPix_array(translation):
 
 def load_pcd(cat):
     # load meshes
-    mesh_path = "/home/sthalham/data/LINEMOD/models/"
+    mesh_path = "/home/sthalham/data/Meshes/linemod_13/"
     #mesh_path = "/home/stefan/data/val_linemod_cc_rgb/models_ply/"
     ply_path = mesh_path + 'obj_' + cat + '.ply'
     model_vsd = ply_loader.load_ply(ply_path)
@@ -290,6 +163,30 @@ def evaluate_linemod(generator, model, threshold=0.05):
         model     : The model to evaluate.
         threshold : The score threshold to use.
     """
+
+    mesh_info = '/home/sthalham/data/Meshes/linemod_13/models_info.yml'
+    threeD_boxes = np.ndarray((31, 8, 3), dtype=np.float32)
+    model_dia = np.zeros((31), dtype=np.float32)
+
+    for key, value in yaml.load(open(mesh_info)).items():
+        fac = 0.001
+        x_minus = value['min_x'] * fac
+        y_minus = value['min_y'] * fac
+        z_minus = value['min_z'] * fac
+        x_plus = value['size_x'] * fac + x_minus
+        y_plus = value['size_y'] * fac + y_minus
+        z_plus = value['size_z'] * fac + z_minus
+        three_box_solo = np.array([[x_plus, y_plus, z_plus],
+                                  [x_plus, y_plus, z_minus],
+                                  [x_plus, y_minus, z_minus],
+                                  [x_plus, y_minus, z_plus],
+                                  [x_minus, y_plus, z_plus],
+                                  [x_minus, y_plus, z_minus],
+                                  [x_minus, y_minus, z_minus],
+                                  [x_minus, y_minus, z_plus]])
+        threeD_boxes[int(key), :, :] = three_box_solo
+        model_dia[int(key)] = value['diameter'] * fac
+
     # start collecting results
     results = []
     image_ids = []
@@ -366,8 +263,16 @@ def evaluate_linemod(generator, model, threshold=0.05):
         image = generator.preprocess_image(image_raw)
         image, scale = generator.resize_image(image)
 
+        #image_raw_dep = generator.load_image_dep(index)
+        #image_dep = generator.preprocess_image(image_raw_dep)
+        #image_dep, scale_dep = generator.resize_image(image_dep)
+
+        #print(image.shape)
+        #print(image_dep)
+
         if keras.backend.image_data_format() == 'channels_first':
             image = image.transpose((2, 0, 1))
+            image_dep = image_dep.transpose((2, 0, 1))
 
         anno = generator.load_annotations(index)
         if len(anno['labels']) > 1:
@@ -395,7 +300,10 @@ def evaluate_linemod(generator, model, threshold=0.05):
             continue
 
         # run network
+        #print(np.expand_dims([image], axis=0).shape)
+        #print(np.expand_dims([image, image_dep], axis=0).shape)
         boxes, boxes3D, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
+
 
         # correct boxes for image scale
         boxes /= scale
@@ -445,9 +353,12 @@ def evaluate_linemod(generator, model, threshold=0.05):
                 continue
 
             cls = generator.label_to_inv_label(label)
-            #cls = 1
-            control_points = box3D[(cls - 1), :]
-            #control_points = box3D[0, :]
+            if cls > 5:
+                cls += 2
+            elif cls > 2:
+                cls += 1
+            else: pass
+            control_points = box3D
 
             # append detection for each positively labeled class
             image_result = {
@@ -531,7 +442,7 @@ def evaluate_linemod(generator, model, threshold=0.05):
                         fn[t_cat] -= 1
                         fnit = False
 
-                        obj_points = np.ascontiguousarray(threeD_boxes[cls-1, :, :], dtype=np.float32) #.reshape((8, 1, 3))
+                        obj_points = np.ascontiguousarray(threeD_boxes[cls, :, :], dtype=np.float32) #.reshape((8, 1, 3))
                         est_points = np.ascontiguousarray(control_points.T, dtype=np.float32).reshape((8, 1, 2))
 
                         K = np.float32([fxkin, 0., cxkin, 0., fykin, cykin, 0., 0., 1.]).reshape(3, 3)
@@ -566,146 +477,71 @@ def evaluate_linemod(generator, model, threshold=0.05):
                         #tDbox = np.reshape(box3D, (16))
                         #print(tDbox)
 
-                        '''
-                        colR = 242
-                        colG = 119
-                        colB = 25
 
-                        colR1 = 242
-                        colG1 = 119
-                        colB1 = 25
+                        pose = est_points.reshape((16)).astype(np.int16)
+                        bb = b1
 
-                        colR2 = 242
-                        colG2 = 119
-                        colB2 = 25
+                        tDbox = R_gt.dot(obj_points.T).T
+                        tDbox = tDbox + np.repeat(t_gt[np.newaxis, :], 8, axis=0)
+                        box3D = toPix_array(tDbox)
+                        tDbox = np.reshape(box3D, (16))
+                        tDbox = tDbox.astype(np.uint16)
 
-                        colR3 = 65
-                        colG3 = 102
-                        colB3 = 245
+                        colGT = (0, 128, 0)
+                        colEst = (255, 0, 0)
 
-                        colR4 = 65
-                        colG4 = 102
-                        colB4 = 245
+                        cv2.rectangle(image, (int(bb[0]), int(bb[1])), (int(bb[2]), int(bb[3])),
+                                      (255, 255, 255), 2)
 
-                        colR5 = 65
-                        colG5 = 102
-                        colB5 = 245
+                        image = cv2.line(image, tuple(tDbox[0:2].ravel()), tuple(tDbox[2:4].ravel()), colGT, 3)
+                        image = cv2.line(image, tuple(tDbox[2:4].ravel()), tuple(tDbox[4:6].ravel()), colGT, 3)
+                        image = cv2.line(image, tuple(tDbox[4:6].ravel()), tuple(tDbox[6:8].ravel()), colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[6:8].ravel()), tuple(tDbox[0:2].ravel()), colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[0:2].ravel()), tuple(tDbox[8:10].ravel()), colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[2:4].ravel()), tuple(tDbox[10:12].ravel()), colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[4:6].ravel()), tuple(tDbox[12:14].ravel()), colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[6:8].ravel()), tuple(tDbox[14:16].ravel()), colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[8:10].ravel()), tuple(tDbox[10:12].ravel()),
+                                         colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[10:12].ravel()), tuple(tDbox[12:14].ravel()),
+                                         colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[12:14].ravel()), tuple(tDbox[14:16].ravel()),
+                                         colGT,
+                                         3)
+                        image = cv2.line(image, tuple(tDbox[14:16].ravel()), tuple(tDbox[8:10].ravel()),
+                                         colGT,
+                                         3)
 
-                        img = cv2.line(img, tuple(pose[0:2].ravel()), tuple(pose[2:4].ravel()), (255, 255, 255), 5)
-                        img = cv2.line(img, tuple(pose[2:4].ravel()), tuple(pose[4:6].ravel()), (255, 255, 255), 5)
-                        img = cv2.line(img, tuple(pose[4:6].ravel()), tuple(pose[6:8].ravel()), (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[6:8].ravel()), tuple(pose[0:2].ravel()), (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[0:2].ravel()), tuple(pose[8:10].ravel()), (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[2:4].ravel()), tuple(pose[10:12].ravel()), (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[4:6].ravel()), tuple(pose[12:14].ravel()), (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[6:8].ravel()), tuple(pose[14:16].ravel()), (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[8:10].ravel()), tuple(pose[10:12].ravel()),
-                           (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[10:12].ravel()), tuple(pose[12:14].ravel()),
-                           (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[12:14].ravel()), tuple(pose[14:16].ravel()),
-                           (255, 255, 255),
-                           5)
-                        img = cv2.line(img, tuple(pose[14:16].ravel()), tuple(pose[8:10].ravel()),
-                           (255, 255, 255),
-                           5)
+                        image = cv2.line(image, tuple(pose[0:2].ravel()), tuple(pose[2:4].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[2:4].ravel()), tuple(pose[4:6].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[4:6].ravel()), tuple(pose[6:8].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[6:8].ravel()), tuple(pose[0:2].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[0:2].ravel()), tuple(pose[8:10].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[2:4].ravel()), tuple(pose[10:12].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[4:6].ravel()), tuple(pose[12:14].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[6:8].ravel()), tuple(pose[14:16].ravel()), colEst, 5)
+                        image = cv2.line(image, tuple(pose[8:10].ravel()), tuple(pose[10:12].ravel()), colEst,
+                                         5)
+                        image = cv2.line(image, tuple(pose[10:12].ravel()), tuple(pose[12:14].ravel()), colEst,
+                                         5)
+                        image = cv2.line(image, tuple(pose[12:14].ravel()), tuple(pose[14:16].ravel()), colEst,
+                                         5)
+                        image = cv2.line(image, tuple(pose[14:16].ravel()), tuple(pose[8:10].ravel()), colEst,
+                                         5)
 
-                        img = cv2.line(img, tuple(pose[0:2].ravel()), tuple(pose[2:4].ravel()), (colR, colG, colB), 4)
-                        img = cv2.line(img, tuple(pose[2:4].ravel()), tuple(pose[4:6].ravel()), (colR, colG, colB), 4)
-                        img = cv2.line(img, tuple(pose[4:6].ravel()), tuple(pose[6:8].ravel()), (colR1, colG1, colB1), 4)
-                        img = cv2.line(img, tuple(pose[6:8].ravel()), tuple(pose[0:2].ravel()), (colR1, colG1, colB1), 4)
-                        img = cv2.line(img, tuple(pose[0:2].ravel()), tuple(pose[8:10].ravel()), (colR2, colG2, colB2), 4)
-                        img = cv2.line(img, tuple(pose[2:4].ravel()), tuple(pose[10:12].ravel()), (colR2, colG2, colB2), 4)
-                        img = cv2.line(img, tuple(pose[4:6].ravel()), tuple(pose[12:14].ravel()), (colR5, colG5, colB5), 4)
-                        img = cv2.line(img, tuple(pose[6:8].ravel()), tuple(pose[14:16].ravel()), (colR5, colG5, colB5), 4)
-                        img = cv2.line(img, tuple(pose[8:10].ravel()), tuple(pose[10:12].ravel()), (colR3, colG3, colB3),
-                           4)
-                        img = cv2.line(img, tuple(pose[10:12].ravel()), tuple(pose[12:14].ravel()), (colR3, colG3, colB3),
-                           4)
-                        img = cv2.line(img, tuple(pose[12:14].ravel()), tuple(pose[14:16].ravel()), (colR4, colG4, colB4),
-                           4)
-                        img = cv2.line(img, tuple(pose[14:16].ravel()), tuple(pose[8:10].ravel()), (colR4, colG4, colB4),
-                           4)
+                        name = '/home/sthalham/visTests/detection_LM.jpg'
+                        cv2.imwrite(name, image)
 
-                        font = cv2.FONT_HERSHEY_COMPLEX
-                        bottomLeftCornerOfText = (int(bb[0]) + 5, int(bb[1]) + int(bb[3]) - 5)
-                        fontScale = 0.5
-                        fontColor = (25, 215, 250)
-                        fontthickness = 2
-                        lineType = 2
+                        print('break')
 
-                        if detCats[i] == 1:
-                            cate = 'Ape'
-                        elif detCats[i] == 2:
-                            cate = 'Benchvise'
-                        elif detCats[i] == 3:
-                            cate = 'Bowl'
-                        elif detCats[i] == 4:
-                            cate = 'Camera'
-                        elif detCats[i] == 5:
-                            cate = 'Can'
-                        elif detCats[i] == 6:
-                            cate = 'Cat'
-                        elif detCats[i] == 7:
-                            cate = 'Cup'
-                        elif detCats[i] == 8:
-                            cate = 'Driller'
-                        elif detCats[i] == 9:
-                            cate = 'Duck'
-                        elif detCats[i] == 10:
-                            cate = 'Eggbox'
-                        elif detCats[i] == 11:
-                            cate = 'Glue'
-                        elif detCats[i] == 12:
-                            cate = 'Holepuncher'
-                        elif detCats[i] == 13:
-                            cate = 'Iron'
-                        elif detCats[i] == 14:
-                            cate = 'Lamp'
-                        elif detCats[i] == 15:
-                            cate = 'Phone'
-                        gtText = cate
-                        # gtText = cate + " / " + str(detSco[i])
-
-                        fontColor2 = (0, 0, 0)
-                        fontthickness2 = 4
-                        cv2.putText(img, gtText,
-                            bottomLeftCornerOfText,
-                            font,
-                            fontScale,
-                            fontColor2,
-                            fontthickness2,
-                            lineType)
-
-                        cv2.putText(img, gtText,
-                            bottomLeftCornerOfText,
-                            font,
-                            fontScale,
-                            fontColor,
-                            fontthickness,
-                            lineType)
-
-                        name = '/home/sthalham/visTests/detected.jpg'
-                        img_con = np.concatenate((img, img_gt), axis=1)
-                        cv2.imwrite(name, img_con)
-                        name_est = '/home/sthalham/visTests/detected_est.jpg'
-                        cv2.imwrite(name_est, img_con)
-
-                        '''
-
-                        #for i in range(0,8):
-                        #    cv2.circle(image, (control_points[2*i], control_points[2*i+1]), 1, (0, 255, 0), thickness=3)
-                        #    cv2.circle(image, (tDbox[2 * i], tDbox[2 * i + 1]), 1, (255, 0, 0), thickness=3)
-
-                        #cv2.imwrite('/home/sthalham/inRetNetPose.jpg', image)
 
                         if not math.isnan(rd):
                             if rd < 5.0 and xyz < 0.05:
@@ -722,20 +558,20 @@ def evaluate_linemod(generator, model, threshold=0.05):
                             if err_repr < 5.0:
                                 rep_less5[t_cat] += 1
 
-                        #if cls == 3 or cls == 7 or cls == 10 or cls == 11:
-                        #    err_add = adi(R_est, t_est, R_gt, t_gt, model_vsd["pts"])
+                        if cls == 3 or cls == 7 or cls == 10 or cls == 11:
+                            err_add = adi(R_est, t_est, R_gt, t_gt, model_vsd["pts"])
+                        else:
+                            err_add = add(R_est, t_est, R_gt, t_gt, model_vsd["pts"])
 
-                        #else:
-                        err_add = add(R_est, t_est, R_gt, t_gt, model_vsd["pts"])
-
-                        print(err_add)
+                        print(' ')
+                        print('error: ', err_add, 'threshold', model_dia[cls] * 0.1)
 
                         if not math.isnan(err_add):
-                            if err_add < (model_dia[cls - 1] * 0.1):
+                            if err_add < (model_dia[cls] * 0.1):
                                 add_less_d[t_cat] += 1
 
                         if not math.isnan(err_add):
-                            if err_add < (model_dia[cls - 1] * 0.15):
+                            if err_add < (model_dia[cls] * 0.15):
                                 tp_add[t_cat] += 1
                                 fn_add[t_cat] -= 1
 
@@ -810,10 +646,10 @@ def evaluate_linemod(generator, model, threshold=0.05):
         print('cat ', ind, ' rec ', detPre[ind], ' pre ', detRec[ind], ' less5 ', less_55[ind], ' repr ',
                   less_repr_5[ind], ' add ', less_add_d[ind], ' vsd ', less_vsd_t[ind], ' F1 add 0.15d ', F1_add[ind])
 
-    dataset_recall = sum(tp) / (sum(tp) + sum(fp)) * 100.0
-    dataset_precision = sum(tp) / (sum(tp) + sum(fn)) * 100.0
-    dataset_recall_add = sum(tp_add) / (sum(tp_add) + sum(fp_add)) * 100.0
-    dataset_precision_add = sum(tp_add) / (sum(tp_add) + sum(fn_add)) * 100.0
+    dataset_recall = sum(tp) / (sum(tp) + sum(fn)) * 100.0
+    dataset_precision = sum(tp) / (sum(tp) + sum(fp)) * 100.0
+    dataset_recall_add = sum(tp_add) / (sum(tp_add) + sum(fn_add)) * 100.0
+    dataset_precision_add = sum(tp_add) / (sum(tp_add) + sum(fp_add)) * 100.0
     F1_add_all = 2 * ((dataset_precision_add * dataset_recall_add)/(dataset_precision_add + dataset_recall_add))
     less_55 = sum(less5) / sum(rotD) * 100.0
     less_repr_5 = sum(rep_less5) / sum(rep_e) * 100.0

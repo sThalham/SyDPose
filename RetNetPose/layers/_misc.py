@@ -120,16 +120,11 @@ class RegressBoxes(keras.layers.Layer):
     """
 
     def __init__(self, mean=None, std=None, *args, **kwargs):
-        """ Initializer for the RegressBoxes layer.
 
-        Args
-            mean: The mean value of the regression values which was used for normalization.
-            std: The standard value of the regression values which was used for normalization.
-        """
         if mean is None:
-            mean = np.array([0, 0, 0, 0])
+            mean = np.zeros((32), dtype=np.float32)
         if std is None:
-            std = np.array([0.2, 0.2, 0.2, 0.2])
+            std = np.ones((32), dtype=np.float32)*0.2
 
         if isinstance(mean, (list, tuple)):
             mean = np.array(mean)
@@ -160,6 +155,30 @@ class RegressBoxes(keras.layers.Layer):
         })
 
         return config
+
+
+class ClipBoxes(keras.layers.Layer):
+    """ Keras layer to clip box values to lie inside a given shape.
+    """
+
+    def call(self, inputs, **kwargs):
+        image, boxes = inputs
+        shape = keras.backend.cast(keras.backend.shape(image), keras.backend.floatx())
+        if keras.backend.image_data_format() == 'channels_first':
+            height = shape[2]
+            width  = shape[3]
+        else:
+            height = shape[1]
+            width  = shape[2]
+        x1 = backend.clip_by_value(boxes[:, :, 0], 0, width)
+        y1 = backend.clip_by_value(boxes[:, :, 1], 0, height)
+        x2 = backend.clip_by_value(boxes[:, :, 2], 0, width)
+        y2 = backend.clip_by_value(boxes[:, :, 3], 0, height)
+
+        return keras.backend.stack([x1, y1, x2, y2], axis=2)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape[1]
 
 
 class RegressBoxes3D(keras.layers.Layer):
@@ -204,147 +223,6 @@ class RegressBoxes3D(keras.layers.Layer):
         config.update({
             'mean': self.mean.tolist(),
             'std' : self.std.tolist(),
-        })
-
-        return config
-
-
-class ClipBoxes(keras.layers.Layer):
-    """ Keras layer to clip box values to lie inside a given shape.
-    """
-
-    def call(self, inputs, **kwargs):
-        image, boxes = inputs
-        shape = keras.backend.cast(keras.backend.shape(image), keras.backend.floatx())
-        if keras.backend.image_data_format() == 'channels_first':
-            height = shape[2]
-            width  = shape[3]
-        else:
-            height = shape[1]
-            width  = shape[2]
-        x1 = backend.clip_by_value(boxes[:, :, 0], 0, width)
-        y1 = backend.clip_by_value(boxes[:, :, 1], 0, height)
-        x2 = backend.clip_by_value(boxes[:, :, 2], 0, width)
-        y2 = backend.clip_by_value(boxes[:, :, 3], 0, height)
-
-        return keras.backend.stack([x1, y1, x2, y2], axis=2)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape[1]
-
-
-class RegressTranslation(keras.layers.Layer):
-
-    def __init__(self, mean=None, std=None, *args, **kwargs):
-        if mean is None:
-            mean = [0.0, 0.0]
-        if std is None:
-            std = [0.4, 0.4]
-
-        if isinstance(mean, (list, tuple)):
-            mean = np.array(mean)
-        elif not isinstance(mean, np.ndarray):
-            raise ValueError('Expected mean to be a np.ndarray, list or tuple. Received: {}'.format(type(mean)))
-
-        if isinstance(std, (list, tuple)):
-            std = np.array(std)
-        elif not isinstance(std, np.ndarray):
-            raise ValueError('Expected std to be a np.ndarray, list or tuple. Received: {}'.format(type(std)))
-
-        self.mean = mean
-        self.std  = std
-        super(RegressTranslation, self).__init__(*args, **kwargs)
-
-    def call(self, inputs, **kwargs):
-        poses, regression, regression_pose = inputs
-        return backend.translation_transform_inv(poses, regression, regression_pose, mean=self.mean, std=self.std)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape[0]
-
-    def get_config(self):
-        config = super(RegressTranslation, self).get_config()
-        config.update({
-            'mean': self.mean.tolist(),
-            'std': self.std.tolist(),
-        })
-
-        return config
-
-
-class RegressDepth(keras.layers.Layer):
-
-    def __init__(self, mean=None, std=None, *args, **kwargs):
-        if mean is None:
-            mean = np.array([0.0])
-        if std is None:
-            std = np.array([0.4])
-
-        if isinstance(mean, (list, tuple)):
-            mean = np.array(mean)
-        elif not isinstance(mean, np.ndarray):
-            raise ValueError('Expected mean to be a np.ndarray, list or tuple. Received: {}'.format(type(mean)))
-
-        if isinstance(std, (list, tuple)):
-            std = np.array(std)
-        elif not isinstance(std, np.ndarray):
-            raise ValueError('Expected std to be a np.ndarray, list or tuple. Received: {}'.format(type(std)))
-
-        self.mean = mean
-        self.std  = std
-        super(RegressDepth, self).__init__(*args, **kwargs)
-
-    def call(self, inputs, **kwargs):
-        poses, regression, regression_pose = inputs
-        return backend.depth_transform_inv(poses, regression, regression_pose, mean=self.mean, std=self.std)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape[0]
-
-    def get_config(self):
-        config = super(RegressDepth, self).get_config()
-        config.update({
-            'mean': self.mean.tolist(),
-            'std': self.std.tolist(),
-        })
-
-        return config
-
-
-class RegressRotation(keras.layers.Layer):
-
-    def __init__(self, mean=None, std=None, *args, **kwargs):
-        if mean is None:
-            mean = [0.0, 0.0, 0.0, 0.0]
-        if std is None:
-            std = [1.0, 1.0, 1.0, 1.0]
-
-        if isinstance(mean, (list, tuple)):
-            mean = np.array(mean)
-        elif not isinstance(mean, np.ndarray):
-            raise ValueError('Expected mean to be a np.ndarray, list or tuple. Received: {}'.format(type(mean)))
-
-        if isinstance(std, (list, tuple)):
-            std = np.array(std)
-        elif not isinstance(std, np.ndarray):
-            raise ValueError('Expected std to be a np.ndarray, list or tuple. Received: {}'.format(type(std)))
-
-        self.mean = mean
-        self.std  = std
-        super(RegressRotation, self).__init__(*args, **kwargs)
-
-    def call(self, inputs, **kwargs):
-        poses, regression = inputs
-        return backend.rotation_transform_inv(poses, regression, mean=self.mean, std=self.std)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape[0]
-
-    def get_config(self):
-        config = super(RegressRotation, self).get_config()
-        config.update({
-            'mean': self.mean.tolist(),
-            'std': self.std.tolist(),
         })
 
         return config

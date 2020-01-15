@@ -149,6 +149,7 @@ class LinemodGenerator(Generator):
         elif type(image_index) == int:
             image_info = self.image_ann[image_index]
         path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
+        path = path[:-4] + '_dep' + path[-4:]
 
         return read_image_bgr(path)
 

@@ -130,8 +130,18 @@ def vsd(R_est, t_est, R_gt, t_gt, model, depth_test, K, delta, tau,
     depth_est = render(model, im_size, K, R_est, t_est, clip_near=100,
                                 clip_far=10000, mode='depth')
 
+    sca_est = np.nanmax(depth_est)/255
+    sca_dep_est = np.multiply(depth_est, sca_est)
+    sca_dep_est.astype(np.uint8)
+    cv2.imwrite('/home/sthalham/depth_est.jpg', sca_dep_est)
+
     depth_gt = render(model, im_size, K, R_gt, t_gt, clip_near=100,
                                clip_far=10000, mode='depth')
+
+    sca_gt = np.nanmax(depth_est) / 255
+    sca_dep_gt = np.multiply(depth_gt, sca_gt)
+    sca_dep_gt.astype(np.uint8)
+    cv2.imwrite('/home/sthalham/depth_gt.jpg', sca_dep_gt)
 
     # Convert depth images to distance images
     dist_test = depth_im_to_dist_im(depth_test, K)

@@ -254,8 +254,6 @@ def separate_3Dregression_model(num_values, num_anchors, num_classes, pyramid_fe
     outputs = keras.layers.concatenate(output_list, axis=2)
     outputs = keras.layers.Reshape((-1, num_classes, num_values), name='pyramid_regression3D_reshape')(outputs)
 
-    print(outputs.shape)
-
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 
 
@@ -309,26 +307,6 @@ def default_submodels(num_classes, num_anchors):
     Returns
         A list of tuple, where the first element is the name of the submodel and the second element is the submodel itself.
     """
-
-    #return [
-    #    ('bbox', default_regression_model(4, num_anchors)),
-    #    ('3Dbox_1', default_3Dregression_model(16, num_anchors, 15)[0]),
-    #    ('3Dbox_2', default_3Dregression_model(16, num_anchors, 15)[1]),
-    #    ('3Dbox_3', default_3Dregression_model(16, num_anchors, 15)[2]),
-    #    ('3Dbox_4', default_3Dregression_model(16, num_anchors, 15)[3]),
-    #    ('3Dbox_5', default_3Dregression_model(16, num_anchors, 15)[4]),
-    #    ('3Dbox_6', default_3Dregression_model(16, num_anchors, 15)[5]),
-    #    ('3Dbox_7', default_3Dregression_model(16, num_anchors, 15)[6]),
-    #    ('3Dbox_8', default_3Dregression_model(16, num_anchors, 15)[7]),
-    #    ('3Dbox_9', default_3Dregression_model(16, num_anchors, 15)[8]),
-    #    ('3Dbox_10', default_3Dregression_model(16, num_anchors, 15)[9]),
-    #    ('3Dbox_11', default_3Dregression_model(16, num_anchors, 15)[10]),
-    #    ('3Dbox_12', default_3Dregression_model(16, num_anchors, 15)[11]),
-    #    ('3Dbox_13', default_3Dregression_model(16, num_anchors, 15)[12]),
-    #    ('3Dbox_14', default_3Dregression_model(16, num_anchors, 15)[13]),
-    #    ('3Dbox_15', default_3Dregression_model(16, num_anchors, 15)[14]),
-    #    ('cls', default_classification_model(num_classes, num_anchors))
-    #]
 
     return [
         ('bbox', default_regression_model(4, num_anchors)),
@@ -394,7 +372,9 @@ def __build_anchors(anchor_parameters, features):
 
 def retinanet(
     inputs,
-    backbone_layers,
+    C3,
+    C4,
+    C5,
     num_classes,
     num_anchors             = None,
     create_pyramid_features = __create_pyramid_features,
@@ -430,7 +410,7 @@ def retinanet(
     if submodels is None:
         submodels = default_submodels(num_classes, num_anchors)
 
-    C3, C4, C5 = backbone_layers
+    #C3, C4, C5 = backbone_layers
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
     features = create_pyramid_features(C3, C4, C5)

@@ -208,7 +208,6 @@ class FilterDetections(keras.layers.Layer):
         """
         return [
             (input_shape[0][0], self.max_detections, 4),
-            #(input_shape[1][0], self.max_detections, 15, 16),
             (input_shape[1][0], self.max_detections, 16),
             (input_shape[2][0], self.max_detections),
             (input_shape[2][0], self.max_detections),
