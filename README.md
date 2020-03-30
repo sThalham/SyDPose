@@ -3,10 +3,7 @@
 SyDPose: Object Detection and Pose Estimation in Cluttered Real-World Depth Images Trained using only Synthetic Data
 by Stefan Thalhammer, Timothy Patten, and Markus Vincze.
 
-Please cite:
----
 @INPROCEEDINGS{SyDPose, author={S. {Thalhammer} and T. {Patten} and M. {Vincze}}, booktitle={2019 International Conference on 3D Vision (3DV)}, title={SyDPose: Object Detection and Pose Estimation in Cluttered Real-World Depth Images Trained using Only Synthetic Data}, year={2019}, volume={}, number={}, pages={106-115},} 
----
 
 ## Version requirements
 
