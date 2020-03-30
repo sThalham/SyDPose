@@ -2,10 +2,8 @@
 import keras
 import numpy as np
 import json
-import pyquaternion
 import math
 import transforms3d as tf3d
-import geometry
 import os
 import copy
 import cv2
@@ -76,7 +74,7 @@ def toPix_array(translation):
 
 def load_pcd(cat):
     # load meshes
-    mesh_path = "/home/sthalham/data/Meshes/linemod_13/"
+    mesh_path = "/home/stefan/data/Meshes/linemod_13/"
     #mesh_path = "/home/stefan/data/val_linemod_cc_rgb/models_ply/"
     ply_path = mesh_path + 'obj_' + cat + '.ply'
     model_vsd = ply_loader.load_ply(ply_path)
@@ -140,7 +138,7 @@ def boxoverlap(a, b):
 def evaluate_linemod(generator, model, threshold=0.05):
     threshold = 0.5
 
-    mesh_info = '/home/sthalham/data/Meshes/linemod_13/models_info.yml'
+    mesh_info = '/home/stefan/data/Meshes/linemod_13/models_info.yml'
     threeD_boxes = np.ndarray((31, 8, 3), dtype=np.float32)
     model_dia = np.zeros((31), dtype=np.float32)
 

@@ -10,12 +10,11 @@ import tensorflow as tf
 
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-    import RetNetPose.bin  # noqa: F401
-    __package__ = "RetNetPose.bin"
+    import SyDPose.bin  # noqa: F401
+    __package__ = "SyDPose.bin"
 
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-from ..utils.eval import evaluate
 from ..utils.keras_version import check_keras_version
 
 
@@ -122,9 +121,6 @@ def main(args=None):
     if args.gpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     keras.backend.tensorflow_backend.set_session(get_session())
-
-    if args.save_path is not None and not os.path.exists(args.save_path):
-        os.makedirs(args.save_path)
 
     if args.config:
         args.config = read_config_file(args.config)
