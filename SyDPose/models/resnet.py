@@ -64,14 +64,21 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
         else:
             inputs = keras.layers.Input(shape=(None, None, 3))
 
-    resnet = keras.applications.resnet.ResNet50(include_top=False, weights='imagenet', input_tensor=inputs,
-                                                    pooling=None, classes=num_classes)
+    if backbone == 'resnet50':
+        resnet = keras_resnet.models.ResNet50(inputs, include_top=False, freeze_bn=True)
+    elif backbone == 'resnet101':
+        resnet = keras_resnet.models.ResNet101(inputs, include_top=False, freeze_bn=True)
+    elif backbone == 'resnet152':
+        resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
+    else:
+        raise ValueError('Backbone (\'{}\') is invalid.'.format(backbone))
 
-    # invoke modifier if given
+        # invoke modifier if given
     if modifier:
         resnet = modifier(resnet)
 
-    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=[resnet.layers[80].output, resnet.layers[142].output, resnet.layers[174].output], **kwargs)
+        # create the full model
+    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=resnet.outputs[1:], **kwargs)
 
 
 def resnet50_retinanet(num_classes, inputs=None, **kwargs):

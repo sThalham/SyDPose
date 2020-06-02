@@ -37,9 +37,9 @@ def makedirs(path):
 
 def get_session():
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    return tf.Session(config=config)
+    return tf.compat.v1.Session(config=config)
 
 
 def model_with_weights(model, weights, skip_mismatch):
@@ -179,7 +179,6 @@ def create_generators(args, preprocess_image):
             transform_generator=transform_generator,
             **common_args
         )
-        train_iterations = len(os.listdir(os.path.join(args.linemod_path, 'images/train')))
 
     elif args.dataset_type == 'occlusion':
         from ..preprocessing.occlusion import OcclusionGenerator
@@ -197,7 +196,6 @@ def create_generators(args, preprocess_image):
             transform_generator=transform_generator,
             **common_args
         )
-        train_iterations = len(os.listdir(os.path.join(args.occlusion_path, 'images/train')))
 
     elif args.dataset_type == 'tless':
         from ..preprocessing.tless import TlessGenerator
@@ -217,6 +215,23 @@ def create_generators(args, preprocess_image):
         )
         train_iterations = len(os.listdir(os.path.join(args.tless_path, 'images/train')))
 
+    elif args.dataset_type == 'ycbv':
+        from ..preprocessing.ycbv import YCBVGenerator
+
+        train_generator = YCBVGenerator(
+            args.ycbv_path,
+            'train',
+            transform_generator=transform_generator,
+            **common_args
+        )
+
+        validation_generator = YCBVGenerator(
+            args.ycbv_path,
+            'val',
+            transform_generator=transform_generator,
+            **common_args
+        )
+
     elif args.dataset_type == 'fronius':
         from ..preprocessing.fronius import FroniusGenerator
 
@@ -233,12 +248,11 @@ def create_generators(args, preprocess_image):
             transform_generator=transform_generator,
             **common_args
         )
-        train_iterations = len(os.listdir(os.path.join(args.fronius_path, 'images/train')))
 
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
-    return train_generator, validation_generator, train_iterations
+    return train_generator, validation_generator
 
 
 def parse_args(args):
@@ -256,6 +270,9 @@ def parse_args(args):
 
     tless_parser = subparsers.add_parser('tless')
     tless_parser.add_argument('tless_path', help='Path to dataset directory (ie. /tmp/tless).')
+
+    ycbv_parser = subparsers.add_parser('ycbv')
+    ycbv_parser.add_argument('ycbv_path', help='Path to dataset directory (ie. /tmp/ycbv).')
 
     fronius_parser = subparsers.add_parser('fronius')
     fronius_parser.add_argument('fronius_path', help='Path to dataset directory (ie. /tmp/fronius).')
@@ -300,12 +317,11 @@ def main(args=None):
 
     if args.gpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    keras.backend.tensorflow_backend.set_session(get_session())
 
     if args.config:
         args.config = read_config_file(args.config)
 
-    train_generator, validation_generator, train_iterations = create_generators(args, backbone.preprocess_image)
+    train_generator, validation_generator = create_generators(args, backbone.preprocess_image)
 
     if args.snapshot is not None:
         print('Loading model, this may take a second...')
@@ -353,7 +369,7 @@ def main(args=None):
 
     training_model.fit_generator(
         generator=train_generator,
-        steps_per_epoch=train_iterations,
+        steps_per_epoch=train_generator.size(),
         epochs=args.epochs,
         verbose=1,
         callbacks=callbacks,

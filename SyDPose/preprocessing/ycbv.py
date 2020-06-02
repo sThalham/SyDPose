@@ -14,7 +14,7 @@ def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
 
-class FroniusGenerator(Generator):
+class YCBVGenerator(Generator):
 
     def __init__(self, data_dir, set_name, **kwargs):
 
@@ -41,7 +41,7 @@ class FroniusGenerator(Generator):
 
         self.load_classes()
 
-        super(FroniusGenerator, self).__init__(**kwargs)
+        super(YCBVGenerator, self).__init__(**kwargs)
 
     def load_classes(self):
 
@@ -116,24 +116,23 @@ class FroniusGenerator(Generator):
         elif type(image_index) == int:
             image_info = self.image_ann[image_index]
         path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
-        path = path[:-4] + '.png'
+        path = path[:-4] + '_rgb.png'
+        #path = path[:-4] + '_dep.jpg'
 
         return read_image_bgr(path)
 
     def load_image_dep(self, image_index):
-        """ Load an image at the image_index.
-        """
+
         if _isArrayLike(image_index):
             image_info = (self.image_ann[id] for id in image_index)
         elif type(image_index) == int:
             image_info = self.image_ann[image_index]
         path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
 
-        return path[:-4] + '.png'
+        return path[:-4] + '_dep.png'
 
     def load_annotations(self, image_index):
 
-        # get ground truth annotations
         ids = self.image_ids[image_index]
         ids = ids if _isArrayLike(ids) else [ids]
 

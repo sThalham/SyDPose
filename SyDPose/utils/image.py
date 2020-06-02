@@ -4,7 +4,7 @@ from numpy import random
 from scipy import ndimage, signal
 import cv2
 import pyfastnoisesimd as fns
-from PIL import Image
+import imgaug.augmenters as iaa
 
 from .transform import change_transform_origin
 
@@ -28,6 +28,16 @@ def preprocess_image(x, mode='caffe'):
         x[..., 2] -= 123.68
 
     return x
+
+
+def rgb_augmentation(image):
+    seq = iaa.Sequential([
+        iaa.Sometimes(0.5, iaa.GaussianBlur(sigma=(0, 1.2))),
+        iaa.Sometimes(0.5, iaa.LinearContrast((0.4, 2.3))),
+        iaa.Sometimes(0.5, iaa.Multiply((0.6, 1.4), per_channel=0.3)),
+        iaa.Sometimes(0.5, iaa.Add((-25, 25), per_channel=0.3)),
+        iaa.Invert(0.5, per_channel=0.3)], random_order=True)
+    return seq.augment_image(image)
 
 
 def depth_augmentation(image):
@@ -184,7 +194,8 @@ class TransformParameters:
 
 def apply_transform(matrix, image, params):
 
-    image = depth_augmentation(image)
+    #image = depth_augmentation(image)
+    #image = rgb_augmentation(image)
     image = image.astype('float32')
     image = cv2.warpAffine(
         image,

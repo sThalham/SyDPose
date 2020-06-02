@@ -122,39 +122,39 @@ class Generator(keras.utils.Sequence):
                 (annotations['bboxes'][:, 0] < 0) |
                 (annotations['bboxes'][:, 1] < 0) |
                 (annotations['bboxes'][:, 2] > image.shape[1]) |
-                (annotations['bboxes'][:, 3] > image.shape[0]) |
-                (annotations['segmentations'][:, 0] < 0) |
-                (annotations['segmentations'][:, 0] > image.shape[1]) |
-                (annotations['segmentations'][:, 1] < 0) |
-                (annotations['segmentations'][:, 1] > image.shape[0]) |
-                (annotations['segmentations'][:, 2] < 0) |
-                (annotations['segmentations'][:, 2] > image.shape[1]) |
-                (annotations['segmentations'][:, 3] < 0) |
-                (annotations['segmentations'][:, 3] > image.shape[0]) |
-                (annotations['segmentations'][:, 4] < 0) |
-                (annotations['segmentations'][:, 4] > image.shape[1]) |
-                (annotations['segmentations'][:, 5] < 0) |
-                (annotations['segmentations'][:, 5] > image.shape[0]) |
-                (annotations['segmentations'][:, 6] < 0) |
-                (annotations['segmentations'][:, 6] > image.shape[1]) |
-                (annotations['segmentations'][:, 7] < 0) |
-                (annotations['segmentations'][:, 7] > image.shape[0]) |
-                (annotations['segmentations'][:, 8] < 0) |
-                (annotations['segmentations'][:, 8] > image.shape[1]) |
-                (annotations['segmentations'][:, 9] < 0) |
-                (annotations['segmentations'][:, 9] > image.shape[0]) |
-                (annotations['segmentations'][:, 10] < 0) |
-                (annotations['segmentations'][:, 10] > image.shape[1]) |
-                (annotations['segmentations'][:, 11] < 0) |
-                (annotations['segmentations'][:, 11] > image.shape[0]) |
-                (annotations['segmentations'][:, 12] < 0) |
-                (annotations['segmentations'][:, 12] > image.shape[1]) |
-                (annotations['segmentations'][:, 13] < 0) |
-                (annotations['segmentations'][:, 13] > image.shape[0]) |
-                (annotations['segmentations'][:, 14] < 0) |
-                (annotations['segmentations'][:, 14] > image.shape[1]) |
-                (annotations['segmentations'][:, 15] < 0) |
-                (annotations['segmentations'][:, 15] > image.shape[0])
+                (annotations['bboxes'][:, 3] > image.shape[0])
+                #(annotations['segmentations'][:, 0] < 0) |
+                #(annotations['segmentations'][:, 0] > image.shape[1]) |
+                #(annotations['segmentations'][:, 1] < 0) |
+                #(annotations['segmentations'][:, 1] > image.shape[0]) |
+                #(annotations['segmentations'][:, 2] < 0) |
+                #(annotations['segmentations'][:, 2] > image.shape[1]) |
+                #(annotations['segmentations'][:, 3] < 0) |
+                #(annotations['segmentations'][:, 3] > image.shape[0]) |
+                #(annotations['segmentations'][:, 4] < 0) |
+                #(annotations['segmentations'][:, 4] > image.shape[1]) |
+                #(annotations['segmentations'][:, 5] < 0) |
+                #(annotations['segmentations'][:, 5] > image.shape[0]) |
+                #(annotations['segmentations'][:, 6] < 0) |
+                #(annotations['segmentations'][:, 6] > image.shape[1]) |
+                #(annotations['segmentations'][:, 7] < 0) |
+                #(annotations['segmentations'][:, 7] > image.shape[0]) |
+                #(annotations['segmentations'][:, 8] < 0) |
+                #(annotations['segmentations'][:, 8] > image.shape[1]) |
+                #(annotations['segmentations'][:, 9] < 0) |
+                #(annotations['segmentations'][:, 9] > image.shape[0]) |
+                #(annotations['segmentations'][:, 10] < 0) |
+                #(annotations['segmentations'][:, 10] > image.shape[1]) |
+                #(annotations['segmentations'][:, 11] < 0) |
+                #(annotations['segmentations'][:, 11] > image.shape[0]) |
+                #(annotations['segmentations'][:, 12] < 0) |
+                #(annotations['segmentations'][:, 12] > image.shape[1]) |
+                #(annotations['segmentations'][:, 13] < 0) |
+                #(annotations['segmentations'][:, 13] > image.shape[0]) |
+                #(annotations['segmentations'][:, 14] < 0) |
+                #(annotations['segmentations'][:, 14] > image.shape[1]) |
+                #(annotations['segmentations'][:, 15] < 0) |
+                #(annotations['segmentations'][:, 15] > image.shape[0])
             )[0]
 
 
