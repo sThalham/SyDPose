@@ -20,9 +20,9 @@ from ..utils.config import read_config_file, parse_anchor_parameters
 
 def get_session():
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    return tf.Session(config=config)
+    return tf.compat.v1.Session(config=config)
 
 
 def parse_args(args):

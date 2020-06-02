@@ -37,9 +37,9 @@ def makedirs(path):
 
 def get_session():
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    return tf.Session(config=config)
+    return tf.compat.v1.Session(config=config)
 
 
 def model_with_weights(model, weights, skip_mismatch):
@@ -300,7 +300,7 @@ def main(args=None):
 
     if args.gpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    keras.backend.tensorflow_backend.set_session(get_session())
+    #keras.backend.tensorflow_backend.set_session(get_session())
 
     if args.config:
         args.config = read_config_file(args.config)

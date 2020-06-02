@@ -20,9 +20,9 @@ from ..utils.keras_version import check_keras_version
 
 def get_session():
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    return tf.Session(config=config)
+    return tf.compat.v1.Session(config=config)
 
 
 def create_generator(args):
