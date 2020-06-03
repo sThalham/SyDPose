@@ -60,6 +60,17 @@ def create_generator(args):
             image_max_side=args.image_max_side,
             config=args.config
         )
+    elif args.dataset_type == 'ycbv':
+
+        from ..preprocessing.ycbv import YCBVGenerator
+
+        validation_generator = YCBVGenerator(
+            args.ycbv_path,
+            'val',
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side,
+            config=args.config
+        )
     elif args.dataset_type == 'fronius':
 
         from ..preprocessing.fronius import FroniusGenerator
@@ -92,6 +103,9 @@ def parse_args(args):
 
     tless_parser = subparsers.add_parser('tless')
     tless_parser.add_argument('tless_path', help='Path to dataset directory (ie. /tmp/Tless).')
+
+    ycbv_parser = subparsers.add_parser('ycbv')
+    ycbv_parser.add_argument('ycbv_path', help='Path to dataset directory (ie. /tmp/ycbv).')
 
     fronius_parser = subparsers.add_parser('fronius')
     fronius_parser.add_argument('fronius_path', help='Path to dataset directory (ie. /tmp/Fronius).')
