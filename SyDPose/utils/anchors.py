@@ -2,6 +2,7 @@
 import numpy as np
 import keras
 import math
+import cv2
 
 from ..utils.compute_overlap import compute_overlap
 
@@ -70,7 +71,34 @@ def anchor_targets_bbox(
             regression_batch[index, :, :-1] = bbox_transform(anchors, annotations['bboxes'][argmax_overlaps_inds, :])
 
             regression_3D[index, :, :-1] = box3D_transform(anchors, annotations['segmentations'][argmax_overlaps_inds, :], num_classes)
-            #regression_3D[index, positive_indices, annotations['labels'][argmax_overlaps_inds[positive_indices]].astype(int), -1] = 1
+
+            '''
+            image_raw = image
+
+            for idx in range(annotations['segmentations'].shape[0]):
+                pose = annotations['segmentations'][idx, :].reshape((16)).astype(np.int16)
+                colEst = (255, 0, 0)
+
+                image_raw = cv2.line(image_raw, tuple(pose[0:2].ravel()), tuple(pose[2:4].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[2:4].ravel()), tuple(pose[4:6].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[4:6].ravel()), tuple(pose[6:8].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[6:8].ravel()), tuple(pose[0:2].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[0:2].ravel()), tuple(pose[8:10].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[2:4].ravel()), tuple(pose[10:12].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[4:6].ravel()), tuple(pose[12:14].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[6:8].ravel()), tuple(pose[14:16].ravel()), colEst, 5)
+                image_raw = cv2.line(image_raw, tuple(pose[8:10].ravel()), tuple(pose[10:12].ravel()), colEst,
+                                 5)
+                image_raw = cv2.line(image_raw, tuple(pose[10:12].ravel()), tuple(pose[12:14].ravel()), colEst,
+                                 5)
+                image_raw = cv2.line(image_raw, tuple(pose[12:14].ravel()), tuple(pose[14:16].ravel()), colEst,
+                                 5)
+                image_raw = cv2.line(image_raw, tuple(pose[14:16].ravel()), tuple(pose[8:10].ravel()), colEst,
+                                 5)
+            rind = np.random.randint(0, 1000)
+            name = '/home/stefan/SyDPose_viz/anno_' + str(rind) + '_LM.jpg'
+            cv2.imwrite(name, image_raw)
+            '''
 
         # ignore annotations outside of image
         if image.shape:
@@ -80,6 +108,7 @@ def anchor_targets_bbox(
             labels_batch[index, indices, -1]     = -1
             regression_batch[index, indices, -1] = -1
             regression_3D[index, indices, -1] = -1
+
 
     return regression_batch, regression_3D, labels_batch
 
