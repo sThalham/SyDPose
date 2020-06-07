@@ -157,7 +157,6 @@ class Generator(keras.utils.Sequence):
                 #(annotations['segmentations'][:, 15] > image.shape[0])
             )[0]
 
-
             if len(invalid_indices):
                 for k in annotations_group[index].keys():
                     annotations_group[index][k] = np.delete(annotations[k], invalid_indices, axis=0)

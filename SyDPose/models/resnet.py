@@ -10,6 +10,7 @@ from . import Backbone
 from ..utils.image import preprocess_image
 
 
+
 class ResNetBackbone(Backbone):
 
     def __init__(self, backbone):
