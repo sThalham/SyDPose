@@ -24,6 +24,7 @@ from ..AttAug.self_attention_convolution import sa_conv2d
 from ..AttAug.attention_augmented_convolution import augmented_conv2d
 from ..AttAug.grouped_convolution import grouped_convolution_2d
 
+
 def default_classification_model(
     num_classes,
     num_anchors,
@@ -45,7 +46,7 @@ def default_classification_model(
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
     outputs = inputs
     for i in range(4):
-        outputs = sa_conv2d(outputs, 256, 3, activation='relu', relative=False)
+        outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
         #outputs = augmented_conv2d(outputs, 256, 3, 128, 128, 8, False)
         #outputs = grouped_convolution_2d(outputs, filters=classification_feature_size, kernel=7, activation='relu')
         #outputs = keras.layers.Conv2D(
@@ -102,7 +103,7 @@ def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, 
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
     outputs = inputs
     for i in range(4):
-        outputs = sa_conv2d(outputs, 256, 3, activation='relu', relative=False)
+        outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
         #outputs = augmented_conv2d(outputs, 256, 3, 128, 128, 8, False)
         #outputs = grouped_convolution_2d(outputs, filters=regression_feature_size, kernel=7, activation='relu')
 
@@ -138,7 +139,7 @@ def default_3Dregression_model(num_values, num_anchors, pyramid_feature_size=256
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
     outputs = inputs
     for i in range(4):
-        outputs = sa_conv2d(outputs, 256, 3, activation='relu', relative=False)
+        outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
         #outputs = augmented_conv2d(outputs, 256, 3, 128, 128, 8, False)
         #outputs = grouped_convolution_2d(outputs, filters=regression_feature_size, kernel=7, activation='relu')
         #outputs = keras.layers.Conv2D(

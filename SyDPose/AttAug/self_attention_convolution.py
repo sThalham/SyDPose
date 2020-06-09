@@ -32,31 +32,24 @@ def sa_conv2d(inputs, filters, kernel, activation='linear', groups=8, relative=T
     sa_convolutions = []
     g_filters = filters // groups
 
-    flatten_hw = lambda x, d: tf.reshape(x, [-1, H * W, d])
-    expand_hw = lambda x, d: tf.reshape(x, [-1, H, W, d])
-    tensorDot = lambda in1, in2, tra: tf.matmul(in1, in2, transpose_b=tra)
     for i in range(groups):
         # Slicing the ith channel:
         sub_inp = keras.layers.Lambda(lambda x: x[:, :, :, int(i * g_filters):int((i+1) * g_filters)])(inputs)
 
         queries = keras.layers.Conv2D(filters=g_filters, kernel_size=1)(sub_inp)
         keys = keras.layers.Conv2D(filters=g_filters, kernel_size=kernel, activation=activation)(sub_inp)
-        flat_q = flatten_hw(queries, groups)
-        flat_k = flatten_hw(keys, groups)
-        logits = tensorDot(flat_q, flat_k, 'True')
-        #logits = tf.matmul(flat_q, flat_k, transpose_b=True)
-        if relative:
-            rel_logits_h, rel_logits_w = relative_logits(queries, H, W, g_filters)
-            logits += rel_logits_h
-            logits += rel_logits_w
+        flat_q = keras.layers.Lambda(lambda x: tf.reshape(x, [-1, H * W, g_filters]))(queries)
+        flat_k = keras.layers.Lambda(lambda x: tf.reshape(x, [-1, H * W, g_filters]))(keys)
+        logits = keras.layers.Lambda(lambda x: tf.matmul(x[0], x[1], transpose_b=True))([flat_q, flat_k])
+        #if relative:
+        #    rel_logits_h, rel_logits_w = relative_logits(queries, H, W, g_filters)
+        #    logits += rel_logits_h
+        #    logits += rel_logits_w
         weights = keras.layers.Lambda(lambda x: tf.nn.softmax(x))(logits)
         values = keras.layers.Conv2D(filters=g_filters, kernel_size=kernel, activation=activation)(sub_inp)
-        flat_v = flatten_hw(values, groups)
-        attn_out = tensorDot(weights, flat_v, 'False')
-        attn_out = expand_hw(attn_out, g_filters)
-        print(attn_out)
-        #attn_out = tf.matmul(weights, flatten_hw(values, groups))
-        #attn_out = tf.reshape(attn_out, [-1, H, W, g_filters])
+        flat_v = keras.layers.Lambda(lambda x: tf.reshape(x, [-1, H * W, g_filters]))(values)
+        attn_out = keras.layers.Lambda(lambda x: tf.matmul(x[0], x[1], transpose_b=False))([weights, flat_v])
+        attn_out = keras.layers.Lambda(lambda x: tf.reshape(x, [-1, H, W, g_filters]))(attn_out)
 
         sa_convolutions.append(attn_out)
 

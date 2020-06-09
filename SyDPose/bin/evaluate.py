@@ -134,7 +134,7 @@ def main(args=None):
 
     if args.gpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    keras.backend.tensorflow_backend.set_session(get_session())
+    #keras.backend.tensorflow_backend.set_session(get_session())
 
     if args.config:
         args.config = read_config_file(args.config)
@@ -191,6 +191,10 @@ def main(args=None):
         print('reprojection below 5 pixel:  ', less_repr_5, '%')
         print('ADD below model diameter:    ', less_add_d, '%')
         print('F1 ADD < 0.15d:              ', F1_add_015, '%')
+
+    elif args.dataset_type == 'ycbv':
+        from ..utils.ycbv_eval import evaluate_ycbv
+        evaluate_ycbv(generator, model, args.score_threshold)
 
     else:
         pass

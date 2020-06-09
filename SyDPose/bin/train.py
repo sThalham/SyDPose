@@ -317,6 +317,7 @@ def main(args=None):
 
     if args.gpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    #tf.config.experimental.set_memory_growth
 
     if args.config:
         args.config = read_config_file(args.config)
