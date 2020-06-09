@@ -76,8 +76,8 @@ def toPix_array(translation):
 
 def load_pcd(cat):
     # load meshes
-    #mesh_path ="/RGBDPose/ycb_video/models/"
-    mesh_path = "/home/stefan/data/Meshes/ycb_video/models/"
+    mesh_path ="/SyDPose/Meshes/ycb_video/models/"
+    #mesh_path = "/home/stefan/data/Meshes/ycb_video/models/"
     ply_path = mesh_path + 'obj_0000' + cat + '.ply'
     model_vsd = ply_loader.load_ply(ply_path)
     pcd_model = open3d.PointCloud()
@@ -140,7 +140,8 @@ def boxoverlap(a, b):
 def evaluate_ycbv(generator, model, threshold=0.05):
     threshold = 0.5
 
-    mesh_info = '/home/stefan/data/Meshes/ycb_video/models/models_info.json'
+    mesh_info = '/SyDPose/Meshes/ycb_video/models/models_info.json'
+    #mesh_info = '/home/stefan/data/Meshes/ycb_video/models/models_info.json'
 
     threeD_boxes = np.ndarray((22, 8, 3), dtype=np.float32)
     sym_cont = np.ndarray((22, 3), dtype=np.float32)
@@ -164,7 +165,7 @@ def evaluate_ycbv(generator, model, threshold=0.05):
                                    [x_minus, y_minus, z_minus],
                                    [x_minus, y_minus, z_plus]])
         threeD_boxes[int(key), :, :] = three_box_solo
-        model_dia[int(key)] = value['diameter'] * fac
+        model_dia[int(key)] = value['diameter']
 
     # start collecting results
     results = []
@@ -176,22 +177,11 @@ def evaluate_ycbv(generator, model, threshold=0.05):
     fp = np.zeros((22), dtype=np.uint32)
     fn = np.zeros((22), dtype=np.uint32)
 
-    # interlude end
-
-    tp_add = np.zeros((22), dtype=np.uint32)
-    fp_add = np.zeros((22), dtype=np.uint32)
-    fn_add = np.zeros((22), dtype=np.uint32)
-
-    rotD = np.zeros((22), dtype=np.uint32)
-    less5 = np.zeros((22), dtype=np.uint32)
     rep_e = np.zeros((22), dtype=np.uint32)
     rep_less5 = np.zeros((22), dtype=np.uint32)
     add_e = np.zeros((22), dtype=np.uint32)
     add_less_d = np.zeros((22), dtype=np.uint32)
-    vsd_e = np.zeros((22), dtype=np.uint32)
-    vsd_less_t = np.zeros((22), dtype=np.uint32)
-
-    # target annotation
+    
     pc1, mv1, mv1_mm = load_pcd('01')
     pc2, mv2, mv2_mm = load_pcd('02')
     pc3, mv3, mv3_mm = load_pcd('03')
@@ -224,14 +214,23 @@ def evaluate_ycbv(generator, model, threshold=0.05):
 
         anno = generator.load_annotations(index)
 
-        print(anno['labels'])
-        t_cat = anno['labels'].astype(np.int8) + 1
         obj_name = []
+        t_cat = anno['labels'].astype(np.uint8) + 1
+        print(t_cat)
         for idx, obj_temp in enumerate(t_cat):
             if obj_temp < 10:
                 obj_name.append('0' + str(obj_temp))
             else:
                 obj_name.append(str(obj_temp))
+            fn[obj_temp] += 1
+            add_e[obj_temp] += 1
+            rep_e[obj_temp] += 1
+
+        print('tp ', tp)
+        print('fn ', fn)
+        print('add_e ', add_e)
+        print('add_less_d ', add_less_d)
+
         t_bbox = np.asarray(anno['bboxes'], dtype=np.float32)
         gt_poses = anno['poses']
 
@@ -246,14 +245,7 @@ def evaluate_ycbv(generator, model, threshold=0.05):
         boxes[:, :, 2] -= boxes[:, :, 0]
         boxes[:, :, 3] -= boxes[:, :, 1]
 
-        rotD[t_cat] += 1
-        rep_e[t_cat] += 1
-        add_e[t_cat] += 1
-        vsd_e[t_cat] += 1
-        fn[t_cat] += 1
-
         # end interlude
-        fn_add[t_cat] += 1
         fnit = np.ones((22), dtype=np.bool)
 
         # compute predicted labels and scores
@@ -265,10 +257,8 @@ def evaluate_ycbv(generator, model, threshold=0.05):
             if label < 0:
                 continue
 
-            if label == 1:
-                continue
-
             cls = generator.label_to_inv_label(label)
+            print(cls)
             # cls = 1
             # control_points = box3D[(cls - 1), :]
             control_points = box3D
@@ -299,8 +289,8 @@ def evaluate_ycbv(generator, model, threshold=0.05):
                         tp[cls] += 1
                         fn[cls] -= 1
 
-                        tp[t_cat[odx[0]]] += 1
-                        fn[t_cat[odx[0]]] -= 1
+                        #tp[t_cat[odx[0]]] += 1
+                        #fn[t_cat[odx[0]]] -= 1
                         fnit[cls] = False
 
                         obj_points = np.ascontiguousarray(threeD_boxes[cls, :, :],
@@ -433,45 +423,29 @@ def evaluate_ycbv(generator, model, threshold=0.05):
                         R_est = reg_p2p[:3, :3]
                         t_est = reg_p2p[:3, 3]
                         '''
-                        if not math.isnan(rd):
-                            if rd < 5.0 and xyz < 0.05:
-                                less5[cls - 1] += 1
+                        err_repr = reproj(K, R_est, t_est*1000.0, R_gt, t_gt*1000.0, model_vsd["pts"])
 
-                        err_repr = reproj(K, R_est, t_est, R_gt, t_gt, model_vsd["pts"])
+                        print(' ')
+                        print('reprojection error: ', err_repr)
 
                         if not math.isnan(err_repr):
                             if err_repr < 5.0:
-                                rep_less5[cls - 1] += 1
+                                rep_less5[cls] += 1
 
                         #print(np.nanmax(model_vsd["pts"]), t_est, t_gt * 1000.0)
 
-                        if cls in [1, 13, 16, 18, 19, 20, 21]:
+                        if cls in [13, 16, 19, 20, 21]:
                             err_add = adi(R_est, t_est, R_gt, t_gt, model_vsd["pts"])
                         else:
                             err_add = add(R_est, t_est, R_gt, t_gt, model_vsd["pts"])
 
-                        print(' ')
-                        print('error: ', err_add, 'threshold', model_dia[cls] * 100.0)  # 0.1 * 1000.0
-
+                        print('error: ', err_add, 'threshold', model_dia[cls] * 0.1)  # 0.1 * 1000.0
+                        
                         if not math.isnan(err_add):
+                            if err_add < (model_dia[cls] * 0.1):
+                                add_less_d[cls] += 1
 
-                            if err_add < (model_dia[cls]):
-                                add_less_d1[cls] += 1
-
-                        if not math.isnan(err_add):
-                            if err_add < (model_dia[cls] * 0.15):
-                                tp_add[cls] += 1
-                                fn_add[cls] -= 1
-
-                        if not math.isnan(err_add):
-                            if err_add < (model_dia[cls - 1] * 0.1):
-                                add_less_d[cls - 1] += 1
-
-                        if not math.isnan(err_add):
-                            if err_add < (model_dia[cls - 1] * 0.15):
-                                tp_add[cls - 1] += 1
-                                fn_add[cls - 1] -= 1
-
+                        '''
                         tDbox = R_gt.dot(obj_points.T).T
                         tDbox = tDbox + np.repeat(t_gt[np.newaxis, :], 8, axis=0)
                         box3D = toPix_array(tDbox)
@@ -531,18 +505,20 @@ def evaluate_ycbv(generator, model, threshold=0.05):
                                          5)
                         image = cv2.line(image, tuple(pose[14:16].ravel()), tuple(pose[8:10].ravel()), colEst,
                                          5)
+                        '''
 
                     else:
                         fp[cls] += 1
-                        fp_add[cls] += 1
 
                 else:
                     fp[cls] += 1
-                    fp_add[cls] += 1
 
-        name = '/home/stefan/SyDPose_viz/detection_LM.jpg'
-        cv2.imwrite(name, image)
-        print('break')
+            else:
+                fp[cls] += 1
+
+        #name = '/home/stefan/SyDPose_viz/detection_LM.jpg'
+        #cv2.imwrite(name, image)
+        #print('break')
 
         # append image to list of processed images
         image_ids.append(generator.image_ids[index])
@@ -558,53 +534,37 @@ def evaluate_ycbv(generator, model, threshold=0.05):
     json.dump(results, open('{}_bbox_results.json'.format(generator.set_name), 'w'), indent=4)
     # json.dump(image_ids, open('{}_processed_image_ids.json'.format(generator.set_name), 'w'), indent=4)
 
-    detPre = [0.0] * 16
-    detRec = [0.0] * 16
-    detPre_add = [0.0] * 16
-    detRec_add = [0.0] * 16
-    F1_add = [0.0] * 16
-    less_55 = [0.0] * 16
-    less_repr_5 = [0.0] * 16
-    less_add_d = [0.0] * 16
-    less_vsd_t = [0.0] * 16
+    detPre = [0.0] * 22
+    detRec = [0.0] * 22
+    less_repr_5 = [0.0] * 22
+    less_add_d = [0.0] * 22
 
     np.set_printoptions(precision=2)
     print('')
-    for ind in range(1, 16):
+    for ind in range(1, 22):
         if ind == 0:
             continue
 
         if tp[ind] == 0:
             detPre[ind] = 0.0
             detRec[ind] = 0.0
-            detPre_add[ind] = 0.0
-            detRec_add[ind] = 0.0
-            less_55[ind] = 0.0
             less_repr_5[ind] = 0.0
             less_add_d[ind] = 0.0
-            less_vsd_t[ind] = 0.0
         else:
             detRec[ind] = tp[ind] / (tp[ind] + fn[ind]) * 100.0
             detPre[ind] = tp[ind] / (tp[ind] + fp[ind]) * 100.0
-            detRec_add[ind] = tp_add[ind] / (tp_add[ind] + fn_add[ind]) * 100.0
-            detPre_add[ind] = tp_add[ind] / (tp_add[ind] + fp_add[ind]) * 100.0
-            F1_add[ind] = 2 * ((detPre_add[ind] * detRec_add[ind]) / (detPre_add[ind] + detRec_add[ind]))
-            less_55[ind] = (less5[ind]) / (rotD[ind]) * 100.0
             less_repr_5[ind] = (rep_less5[ind]) / (rep_e[ind]) * 100.0
             less_add_d[ind] = (add_less_d[ind]) / (add_e[ind]) * 100.0
-            less_vsd_t[ind] = (vsd_less_t[ind]) / (vsd_e[ind]) * 100.0
 
-        print('cat ', ind, ' rec ', detPre[ind], ' pre ', detRec[ind], ' less5 ', less_55[ind], ' repr ',
-              less_repr_5[ind], ' add ', less_add_d[ind], ' vsd ', less_vsd_t[ind], ' F1 add 0.15d ', F1_add[ind])
+        print('cat ', ind, ' rec ', detRec[ind], ' pre ', detPre[ind], ' repr ',
+              less_repr_5[ind], ' add ', less_add_d[ind])
 
-    dataset_recall = sum(tp) / (sum(tp) + sum(fp)) * 100.0
-    dataset_precision = sum(tp) / (sum(tp) + sum(fn)) * 100.0
-    dataset_recall_add = sum(tp_add) / (sum(tp_add) + sum(fp_add)) * 100.0
-    dataset_precision_add = sum(tp_add) / (sum(tp_add) + sum(fn_add)) * 100.0
-    F1_add_all = 2 * ((dataset_precision_add * dataset_recall_add) / (dataset_precision_add + dataset_recall_add))
-    less_55 = sum(less5) / sum(rotD) * 100.0
-    less_repr_5 = sum(rep_less5) / sum(rep_e) * 100.0
-    less_add_d = sum(add_less_d) / sum(add_e) * 100.0
-    less_vsd_t = sum(vsd_less_t) / sum(vsd_e) * 100.0
+    dataset_recall = sum(detRec) / 21
+    dataset_precision = sum(detPre) / 21
+    less_repr_5 = sum(less_repr_5) / 21
+    less_add_d = sum(less_add_d) / 21
 
-    print('IoU 05: ', sum(tp) / (sum(tp) + sum(fp)) * 100.0, sum(tp) / (sum(tp) + sum(fn)) * 100.0)
+    print('ALL:')
+    print('recall: ', dataset_recall)
+    print('precision: ', dataset_precision)
+    print('add: ', less_add_d, 'repr: ', less_repr_5)
