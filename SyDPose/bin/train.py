@@ -370,7 +370,7 @@ def main(args=None):
 
     training_model.fit_generator(
         generator=train_generator,
-        steps_per_epoch=train_generator.size(),
+        steps_per_epoch=100,
         epochs=args.epochs,
         verbose=1,
         callbacks=callbacks,

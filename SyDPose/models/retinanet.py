@@ -46,17 +46,17 @@ def default_classification_model(
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
     outputs = inputs
     for i in range(4):
-        outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
+        #outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
         #outputs = augmented_conv2d(outputs, 256, 3, 128, 128, 8, False)
         #outputs = grouped_convolution_2d(outputs, filters=classification_feature_size, kernel=7, activation='relu')
-        #outputs = keras.layers.Conv2D(
-        #    filters=classification_feature_size,
-        #    activation='relu',
-        #    name='pyramid_classification_{}'.format(i),
-        #    kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
-        #    bias_initializer='zeros',
-        #    **options
-        #)(outputs)
+        outputs = keras.layers.Conv2D(
+            filters=classification_feature_size,
+            activation='relu',
+            name='pyramid_classification_{}'.format(i),
+            kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
+            bias_initializer='zeros',
+            **options
+        )(outputs)
 
     outputs = keras.layers.Conv2D(
         filters=num_classes * num_anchors,
@@ -103,16 +103,16 @@ def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, 
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
     outputs = inputs
     for i in range(4):
-        outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
+        #outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
         #outputs = augmented_conv2d(outputs, 256, 3, 128, 128, 8, False)
         #outputs = grouped_convolution_2d(outputs, filters=regression_feature_size, kernel=7, activation='relu')
 
-        #outputs = keras.layers.Conv2D(
-        #    filters=regression_feature_size,
-        #    activation='relu',
-        #    name='pyramid_regression_{}'.format(i),
-        #    **options
-        #)(outputs)
+        outputs = keras.layers.Conv2D(
+            filters=regression_feature_size,
+            activation='relu',
+            name='pyramid_regression_{}'.format(i),
+            **options
+        )(outputs)
 
     outputs = keras.layers.Conv2D(num_anchors * num_values, name='pyramid_regression', **options)(outputs)
     if keras.backend.image_data_format() == 'channels_first':
@@ -139,15 +139,15 @@ def default_3Dregression_model(num_values, num_anchors, pyramid_feature_size=256
         inputs  = keras.layers.Input(shape=(None, None, pyramid_feature_size))
     outputs = inputs
     for i in range(4):
-        outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
+        #outputs = sa_conv2d(outputs, filters=256, kernel=3, activation='relu', relative=False)
         #outputs = augmented_conv2d(outputs, 256, 3, 128, 128, 8, False)
         #outputs = grouped_convolution_2d(outputs, filters=regression_feature_size, kernel=7, activation='relu')
-        #outputs = keras.layers.Conv2D(
-        #    filters=regression_feature_size,
-        #    activation='relu',
-        #    name='pyramid_regression3D_{}'.format(i),
-        #    **options
-        #)(outputs)
+        outputs = keras.layers.Conv2D(
+            filters=regression_feature_size,
+            activation='relu',
+            name='pyramid_regression3D_{}'.format(i),
+            **options
+        )(outputs)
 
     outputs = keras.layers.Conv2D(num_anchors * num_values, name='pyramid_regression3D', **options)(outputs)
     if keras.backend.image_data_format() == 'channels_first':

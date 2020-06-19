@@ -10,7 +10,6 @@ from . import Backbone
 from ..utils.image import preprocess_image
 
 
-
 class ResNetBackbone(Backbone):
 
     def __init__(self, backbone):
@@ -65,14 +64,16 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
         else:
             inputs = keras.layers.Input(shape=(None, None, 3))
 
-    if backbone == 'resnet50':
-        resnet = keras_resnet.models.ResNet50(inputs, include_top=False, freeze_bn=True)
-    elif backbone == 'resnet101':
-        resnet = keras_resnet.models.ResNet101(inputs, include_top=False, freeze_bn=True)
-    elif backbone == 'resnet152':
-        resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
-    else:
-        raise ValueError('Backbone (\'{}\') is invalid.'.format(backbone))
+    #if backbone == 'resnet50':
+    #    resnet = keras_resnet.models.ResNet50(inputs, include_top=False, freeze_bn=True)
+    #elif backbone == 'resnet101':
+    #    resnet = keras_resnet.models.ResNet101(inputs, include_top=False, freeze_bn=True)
+    #elif backbone == 'resnet152':
+    #    resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
+    #else:
+    #    raise ValueError('Backbone (\'{}\') is invalid.'.format(backbone))
+
+    resnet = keras_resnet.models.ResNet18(inputs, include_top=False, freeze_bn=True)
 
         # invoke modifier if given
     if modifier:
@@ -80,7 +81,6 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
 
         # create the full model
     return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=resnet.outputs[1:], **kwargs)
-
 
 def resnet50_retinanet(num_classes, inputs=None, **kwargs):
     return resnet_retinanet(num_classes=num_classes, backbone='resnet50', inputs=inputs, **kwargs)
